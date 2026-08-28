@@ -1,0 +1,72 @@
+name: Bug Report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: input
+    id: printer
+    attributes:
+      label: Printer Model
+      placeholder: e.g. HP LaserJet 1020
+    validations:
+      required: true
+
+  - type: dropdown
+    id: filter
+    attributes:
+      label: Filter
+      options:
+        - rastertoxqx (XQX)
+        - rastertozjs (ZjStream)
+        - rastertohp (ZJS / HP 2600n)
+        - rastertohiperc (HiPerC)
+        - rastertoqpdl (QPDL)
+        - rastertolava (LAVAFLOW)
+        - rastertohbpl2 (HBPL2)
+        - rastertooak (OAKT)
+        - rastertoslx (SLX)
+    validations:
+      required: true
+
+  - type: input
+    id: macos
+    attributes:
+      label: macOS Version and Hardware
+      placeholder: e.g. macOS 15.3, M1 Pro MacBook Pro
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      placeholder: The document should print correctly.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      placeholder: The printer receives the job but outputs a blank page.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. Install with sudo ./install.sh
+        2. Add printer in System Settings
+        3. Print testpage.pdf
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: CUPS Error Log
+      description: "Paste relevant lines from: `tail -100 /var/log/cups/error_log`"
+      render: shell
+    validations:
+      required: true

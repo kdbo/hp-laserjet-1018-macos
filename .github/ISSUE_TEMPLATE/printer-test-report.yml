@@ -1,0 +1,64 @@
+name: Printer Test Report
+description: Report whether a printer works with these drivers
+title: "[Test] "
+labels: ["test-report"]
+body:
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result
+      options:
+        - "Working"
+        - "Partial (prints but with issues)"
+        - "Not working"
+    validations:
+      required: true
+
+  - type: input
+    id: printer
+    attributes:
+      label: Printer Model
+      placeholder: e.g. Samsung CLP-315
+    validations:
+      required: true
+
+  - type: dropdown
+    id: filter
+    attributes:
+      label: Filter Used
+      options:
+        - rastertoxqx (XQX)
+        - rastertozjs (ZjStream)
+        - rastertohp (ZJS / HP 2600n)
+        - rastertohiperc (HiPerC)
+        - rastertoqpdl (QPDL)
+        - rastertolava (LAVAFLOW)
+        - rastertohbpl2 (HBPL2)
+        - rastertooak (OAKT)
+        - rastertoslx (SLX)
+    validations:
+      required: true
+
+  - type: input
+    id: macos
+    attributes:
+      label: macOS Version
+      placeholder: e.g. macOS 15.3 on M2 MacBook Air
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened when you tried to print? Any issues with output quality, margins, color, etc.?
+      placeholder: Printed a test page successfully. Output looks correct, no issues.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: CUPS Error Log (optional)
+      description: "Paste relevant lines from: `tail -100 /var/log/cups/error_log`"
+      render: shell

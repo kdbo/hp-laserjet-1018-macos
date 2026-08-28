@@ -1,0 +1,24 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build all filters
+        run: make
+
+      - name: Verify binaries exist
+        run: |
+          for f in rastertoxqx rastertozjs rastertohiperc rastertoqpdl \
+                   rastertolava rastertohbpl2 rastertohp rastertooak rastertoslx; do
+            test -x "$f" || { echo "FAIL: $f not found"; exit 1; }
+            echo "OK: $f ($(file -b "$f"))"
+          done
