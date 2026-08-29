@@ -346,6 +346,8 @@ jobs:
             --install-location / \
             "HP1018-${VERSION}.pkg"
 
+            echo "UNSIGNED_PACKAGE=HP1018-${VERSION}.pkg" >> "$GITHUB_ENV"
+
       # ------------------------------------------------------------
       # Inspect package
       # ------------------------------------------------------------
@@ -390,17 +392,23 @@ jobs:
           pkgutil --check-signature \
             "HP1018-${VERSION}-signed.pkg"
 
+          echo "SIGNED_PACKAGE=HP1018-${VERSION}-signed.pkg" >> "$GITHUB_ENV"
+
       # ------------------------------------------------------------
       # Upload package as GitHub Actions artifact
       # ------------------------------------------------------------
-
-      - name: Upload package
+      - name: Upload Signed package
         uses: actions/upload-artifact@v4
         with:
-          name: HP1018-${{ github.ref_name }}
-          path: HP1018-${{ github.ref_name }}-signed.pkg
+          name: HP1018 ${{ github.ref_name }} Signed
+          path: ${{ env.SIGNED_PACKAGE }}
           if-no-files-found: error
-
+      - name: Upload Unsigned package
+        uses: actions/upload-artifact@v4
+        with:
+          name: HP1018 ${{ github.ref_name }}
+          path: ${{ env.UNSIGNED_PACKAGE }}
+          if-no-files-found: error
       # ------------------------------------------------------------
       # Cleanup
       # ------------------------------------------------------------
