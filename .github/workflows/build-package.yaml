@@ -284,12 +284,12 @@ jobs:
         run: |
           rm -rf pkg-build
 
-          mkdir -p \
-            pkg-build/root/usr/libexec/cups/filter \
-            pkg-build/root/usr/local/libexec/hp1018 \
-            pkg-build/root/usr/local/share/hp1018 \
-            pkg-build/root/Library/LaunchDaemons \
-            "pkg-build/root/Library/Application Support/HP1018"
+          mkdir -p pkg-build
+
+          cp -R pkg/root pkg-build/
+          cp -R pkg/scripts pkg-build/
+
+          mkdir -p pkg-build/root/usr/libexec/cups/filter
 
           cp rastertozjs-universal \
             pkg-build/root/usr/libexec/cups/filter/rastertozjs
@@ -303,20 +303,12 @@ jobs:
 
       - name: Verify package source files
         run: |
-          test -f \
-            pkg-build/root/usr/local/libexec/hp1018/watch.sh
-
-          test -f \
-            pkg-build/root/usr/local/share/hp1018/sihp1018.dl
-
-          test -f \
-            pkg-build/root/Library/LaunchDaemons/com.kdbo.hp1018-firmware.plist
-
-          test -f \
-            pkg-build/root/Library/LaunchDaemons/com.kdbo.hp1018.airprint.plist
-
-          test -f \
-            "pkg-build/root/Library/Application Support/HP1018/airprint.sh"
+          test -f pkg-build/root/usr/local/libexec/hp1018/watch.sh
+          test -f pkg-build/root/usr/local/share/hp1018/sihp1018.dl
+          test -f pkg-build/root/Library/LaunchDaemons/com.kdbo.hp1018-firmware.plist
+          test -f pkg-build/root/Library/LaunchDaemons/com.kdbo.hp1018.airprint.plist
+          test -f "pkg-build/root/Library/Application Support/HP1018/airprint.sh"
+          test -f pkg-build/scripts/postinstall
 
       # ------------------------------------------------------------
       # Build unsigned installer package
