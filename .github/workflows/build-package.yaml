@@ -122,6 +122,7 @@ jobs:
           echo "P12 password accepted by OpenSSL."
 
           security import "$CERTIFICATE_PATH" \
+            -f pkcs12 \
             -P "$CERTIFICATE_PASSWORD" \
             -k "$KEYCHAIN_PATH" \
             -T /usr/bin/codesign
@@ -146,6 +147,7 @@ jobs:
           shasum -a 256 "$CERTIFICATE_PATH"
 
           security import "$CERTIFICATE_PATH" \
+            -f pkcs12 \
             -P "$CERTIFICATE_PASSWORD" \
             -k "$KEYCHAIN_PATH" \
             -T /usr/bin/productsign
