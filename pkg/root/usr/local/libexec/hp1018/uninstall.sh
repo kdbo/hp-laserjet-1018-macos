@@ -6,6 +6,7 @@ PRODUCT="HP LaserJet 1018"
 
 FILTER="/usr/libexec/cups/filter/rastertozjs"
 HP1018_DIR="/usr/local/libexec/hp1018"
+PPD="/Library/Printers/PPDs/Contents/Resources/HP-LaserJet_1018-native.ppd"
 SHARE_DIR="/usr/local/share/hp1018"
 LAUNCHD_FIRMWARE="/Library/LaunchDaemons/com.kdbo.hp1018-firmware.plist"
 LAUNCHD_AIRPRINT="/Library/LaunchDaemons/com.kdbo.hp1018.airprint.plist"
@@ -41,6 +42,7 @@ rm -rf "$SHARE_DIR"
 rm -f "$LAUNCHD_FIRMWARE"
 rm -f "$LAUNCHD_AIRPRINT"
 rm -rf "$APP_SUPPORT"
+rm -rf "$PPD"
 
 echo "Restarting CUPS..."
 
