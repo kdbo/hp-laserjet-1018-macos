@@ -1,9 +1,13 @@
-```bash
 #!/bin/bash
 
 FIRMWARE='/usr/local/share/hp1018/sihp1018.dl'
+PRINTER='HP_LaserJet_1018'
 
 firmware_loaded=0
+
+printer_queue_exists() { 
+    /usr/bin/lpstat -p "$PRINTER" >/dev/null 2>&1 
+}
 
 get_device_uri() {
     /usr/libexec/cups/backend/usb |
@@ -14,6 +18,12 @@ get_device_uri() {
 }
 
 while true; do
+
+    if ! printer_queue_exists; then 
+        firmware_loaded=0 
+        sleep 10 
+        continue 
+    fi
 
     DEVICE_URI="$(get_device_uri)"
 
@@ -36,4 +46,3 @@ while true; do
 
     sleep 10
 done
-```
