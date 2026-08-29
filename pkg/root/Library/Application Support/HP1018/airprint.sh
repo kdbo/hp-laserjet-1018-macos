@@ -5,6 +5,11 @@ PRINTERS_CONF="/etc/cups/printers.conf"
 
 dns_pid=""
 
+is_printer_available() {
+    /usr/bin/lpinfo -v | /usr/bin/grep -Fq \
+      'usb://Hewlett-Packard/HP%20LaserJet%201018'
+}
+
 get_printer_value() {
     local key="$1"
 
@@ -83,7 +88,7 @@ start_airprint() {
 
 while true; do
 
-    if is_shared; then
+    if is_shared && is_printer_available; then
 
         ty="$(get_printer_value "Info")"
         note="$(get_printer_value "Location")"
