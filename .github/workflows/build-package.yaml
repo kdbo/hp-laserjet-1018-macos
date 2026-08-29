@@ -279,7 +279,23 @@ jobs:
       # ------------------------------------------------------------
       # Prepare package build tree
       # ------------------------------------------------------------
+      - name: Check package source tree
+        run: |
+          echo "Repository:"
+          pwd
 
+          echo ""
+          echo "Top level:"
+          ls -la
+
+          echo ""
+          echo "pkg:"
+          ls -la pkg || true
+
+          echo ""
+          echo "pkg files:"
+          find pkg -maxdepth 6 -type f -print 2>/dev/null | sort || true
+          
       - name: Prepare package build tree
         run: |
           rm -rf pkg-build
