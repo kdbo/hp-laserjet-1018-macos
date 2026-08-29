@@ -7,9 +7,6 @@ AIRPRINT_PLIST="/Library/LaunchDaemons/com.kdbo.hp1018.airprint.plist"
 launchctl bootout system/com.kdbo.hp1018-firmware 2>/dev/null || true
 launchctl bootstrap system "$FIRMWARE_PLIST"
 
-# Zorg dat de firmware meteen geladen wordt als de printer aanwezig is
-/usr/local/libexec/hp1018/watch.sh
-
 # Zorg dat de AirPrint LaunchDaemon correct geladen wordt
 launchctl bootout system/com.kdbo.hp1018.airprint 2>/dev/null || true
 launchctl bootstrap system "$AIRPRINT_PLIST"
