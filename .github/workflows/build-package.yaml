@@ -305,7 +305,7 @@ jobs:
           cp -R pkg/root pkg-build/
           cp -R pkg/scripts pkg-build/
 
-          ls -l pkg-build/root/
+          ls -l pkg-build/root/usr/local/
 
           mkdir -p pkg-build/root/usr/libexec/cups/filter
 
