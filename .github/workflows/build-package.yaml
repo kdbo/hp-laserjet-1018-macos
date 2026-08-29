@@ -112,6 +112,16 @@ jobs:
           echo "Decoded Application P12 SHA256:"
           shasum -a 256 "$CERTIFICATE_PATH"
 
+          echo "Testing P12 password with OpenSSL..."
+
+          openssl pkcs12 \
+            -legacy \
+            -in "$CERTIFICATE_PATH" \
+            -noout \
+            -passin "pass:$CERTIFICATE_PASSWORD"
+
+          echo "P12 password accepted by OpenSSL."
+
           security import "$CERTIFICATE_PATH" \
             -P "$CERTIFICATE_PASSWORD" \
             -k "$KEYCHAIN_PATH" \
