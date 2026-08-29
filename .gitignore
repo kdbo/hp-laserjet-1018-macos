@@ -1,5 +1,6 @@
 *.o
 *.dl
+!pkg/root/usr/local/share/hp1018/sihp1018.dl
 *.pkg
 *.dmg
 build/
