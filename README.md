@@ -7,15 +7,26 @@ The driver provides automatic firmware loading and AirPrint support for the HP L
 ## Features
 
 * Native **Intel (x86_64)** support
+
 * Native **Apple Silicon (arm64)** support
+
 * Universal CUPS raster filter containing both architectures
+
 * No Ghostscript required
+
 * No Rosetta required
+
 * Automatic firmware loading after the printer is connected
+
 * Automatic firmware reload when the printer becomes available
+
 * **AirPrint support**
+
 * AirPrint advertisement follows the CUPS printer sharing state
+
 * Packaged installation using a macOS `.pkg`
+
+* **Built-in uninstaller**
 
 ## How it works
 
@@ -23,11 +34,17 @@ The printing pipeline uses macOS's built-in PDF-to-raster conversion:
 
 ```text
 PDF
+
  ↓
+
 macOS cgpdftoraster
+
  ↓
+
 rastertozjs
+
  ↓
+
 HP LaserJet 1018
 ```
 
@@ -35,6 +52,7 @@ The `rastertozjs` filter is built as a universal Mach-O binary containing:
 
 ```text
 x86_64
+
 arm64
 ```
 
@@ -46,21 +64,32 @@ AirPrint is provided separately through Bonjour:
 
 ```text
 iPhone / iPad / Mac
+
         ↓
+
       Bonjour
+
         ↓
+
      AirPrint
+
         ↓
+
        CUPS
+
         ↓
+
 HP LaserJet 1018
 ```
 
 ## Requirements
 
 * macOS 14 or later
+
 * Intel Mac (`x86_64`) **or** Apple Silicon Mac (`arm64`)
+
 * HP LaserJet 1018 connected through USB
+
 * Xcode Command Line Tools when building from source
 
 Install the Command Line Tools with:
@@ -76,6 +105,24 @@ The project is distributed as a macOS installer package.
 The package installs the CUPS filter, firmware, PPD and supporting LaunchDaemons required by the driver.
 
 Generated installer packages are build artifacts and are not stored in the Git repository.
+
+## Uninstallation
+
+The package includes a built-in uninstaller.
+
+After installation, run:
+
+```bash
+sudo hp1018-uninstall
+```
+
+The uninstaller stops and removes the HP LaserJet 1018 firmware and AirPrint LaunchDaemons and removes the files installed by the driver, including the CUPS raster filter, firmware resources and HP1018 application-support files.
+
+The CUPS printer queue is **not automatically removed**. This is intentional, as printer queues are user configuration rather than part of the driver installation.
+
+If required, the printer can be removed separately through:
+
+**System Settings → Printers & Scanners**
 
 ## CUPS setup
 
@@ -165,6 +212,7 @@ Clone the repository and enter the project directory:
 
 ```bash
 git clone <repository-url>
+
 cd hp-laserjet-1018-macos
 ```
 
@@ -178,6 +226,7 @@ The resulting `rastertozjs` executable is built for both:
 
 ```text
 x86_64
+
 arm64
 ```
 
@@ -203,23 +252,32 @@ Generated `.pkg` files are also excluded from Git.
 hp-laserjet-1018-macos/
 
 ├── PPD/
+
 │   ├── HP-LaserJet_1018-native.ppd
 │   ├── HP-LaserJet_1018.ppd
 │   └── ...
+
 │
 ├── foo2zjs/
+
 │   ├── sihp1018.img
 │   ├── jbig.c
 │   ├── jbig_ar.c
 │   ├── *.h
 │   ├── *.icm
 │   └── ...
+
 │
 ├── rastertozjs.c
+
 ├── Makefile
+
 ├── install.sh
+
 ├── README.md
+
 ├── LICENSE
+
 └── .gitignore
 ```
 
@@ -228,6 +286,11 @@ The `foo2zjs/` directory contains source code and printer-specific resources ori
 Compiled binaries, installer packages and temporary package-build directories are intentionally excluded from the repository.
 
 ## Version history
+
+### 1.0.18
+
+* Added built-in uninstaller
+* Added `hp1018-uninstall` command for removing the HP LaserJet 1018 driver and its supporting files
 
 ### 1.0.2
 
@@ -259,3 +322,6 @@ Firmware images are copyright HP.
 GNU General Public License v2 or later.
 
 See [LICENSE](LICENSE) for the full license text.
+
+```
+```

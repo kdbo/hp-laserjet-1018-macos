@@ -324,6 +324,8 @@ jobs:
       - name: Verify package source files
         run: |
           test -f pkg-build/root/usr/local/libexec/hp1018/watch.sh
+          test -f pkg-build/root/usr/local/libexec/hp1018/uninstall.sh
+          test -f pkg-build/root/usr/local/bin/hp1018-uninstall
           test -f pkg-build/root/usr/local/share/hp1018/sihp1018.dl
           test -f pkg-build/root/Library/LaunchDaemons/com.kdbo.hp1018-firmware.plist
           test -f pkg-build/root/Library/LaunchDaemons/com.kdbo.hp1018.airprint.plist

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+exec /usr/local/libexec/hp1018/uninstall.sh "$@"
