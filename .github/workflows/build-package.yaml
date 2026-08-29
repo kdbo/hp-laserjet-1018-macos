@@ -62,9 +62,9 @@ jobs:
           sw_vers
           uname -m
           clang --version
-          pkgbuild -h | head -5
-          productsign -h | head -5
-          codesign --version
+          which pkgbuild
+          which productsign
+          which codesign
 
       # ------------------------------------------------------------
       # Create temporary signing keychain
