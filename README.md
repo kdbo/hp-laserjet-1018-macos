@@ -287,6 +287,10 @@ Compiled binaries, installer packages and temporary package-build directories ar
 
 ## Version history
 
+### 1.0.19
+* Airprint also checks if the printer is connected, not only if the printer is shared. This will stop airprint when the usb has been unplugged or the printer loses power.
+* Firmware will now be loaded when the usb gets reconnected or when the printer  has been powercycled.
+
 ### 1.0.18
 
 * Added built-in uninstaller
