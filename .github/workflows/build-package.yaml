@@ -115,7 +115,6 @@ jobs:
           echo "Testing P12 password with OpenSSL..."
 
           openssl pkcs12 \
-            -legacy \
             -in "$CERTIFICATE_PATH" \
             -noout \
             -passin "pass:$CERTIFICATE_PASSWORD"
