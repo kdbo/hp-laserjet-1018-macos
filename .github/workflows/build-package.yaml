@@ -305,6 +305,8 @@ jobs:
           cp -R pkg/root pkg-build/
           cp -R pkg/scripts pkg-build/
 
+          ls -l pkg-build/root/
+
           mkdir -p pkg-build/root/usr/libexec/cups/filter
 
           cp rastertozjs-universal \
