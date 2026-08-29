@@ -109,6 +109,9 @@ jobs:
 
           echo "$CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
 
+          echo "Decoded Application P12 SHA256:"
+          shasum -a 256 "$CERTIFICATE_PATH"
+
           security import "$CERTIFICATE_PATH" \
             -P "$CERTIFICATE_PASSWORD" \
             -k "$KEYCHAIN_PATH" \
@@ -129,6 +132,9 @@ jobs:
           CERTIFICATE_PATH="$RUNNER_TEMP/installer.p12"
 
           echo "$CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
+
+          echo "Decoded Installer P12 SHA256:"
+          shasum -a 256 "$CERTIFICATE_PATH"
 
           security import "$CERTIFICATE_PATH" \
             -P "$CERTIFICATE_PASSWORD" \
