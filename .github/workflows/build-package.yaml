@@ -393,6 +393,51 @@ jobs:
             "HP1018-${VERSION}-signed.pkg"
 
           echo "SIGNED_PACKAGE=HP1018-${VERSION}-signed.pkg" >> "$GITHUB_ENV"
+      # ------------------------------------------------------------
+      # Notarize installer package
+      # ------------------------------------------------------------
+
+      - name: Prepare App Store Connect API key
+        env:
+          NOTARY_KEY: ${{ secrets.APPLE_NOTARY_KEY }}
+        run: |
+          NOTARY_KEY_PATH="$RUNNER_TEMP/AuthKey.p8"
+
+          printf '%s\n' "$NOTARY_KEY" > "$NOTARY_KEY_PATH"
+          chmod 600 "$NOTARY_KEY_PATH"
+
+          test -s "$NOTARY_KEY_PATH"
+
+      - name: Submit package for notarization
+        env:
+          NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+        run: |
+          NOTARY_KEY="$RUNNER_TEMP/AuthKey.p8"
+
+          xcrun notarytool submit \
+            "${{ env.SIGNED_PACKAGE }}" \
+            --key "$NOTARY_KEY" \
+            --key-id "$NOTARY_KEY_ID" \
+            --issuer "$NOTARY_ISSUER_ID" \
+            --wait \
+            --output-format json
+
+      - name: Staple notarization ticket
+        run: |
+          xcrun stapler staple \
+            "${{ env.SIGNED_PACKAGE }}"
+
+      - name: Verify notarization
+        run: |
+          xcrun stapler validate \
+            "${{ env.SIGNED_PACKAGE }}"
+
+          spctl \
+            -a \
+            -vv \
+            -t install \
+            "${{ env.SIGNED_PACKAGE }}"
 
       # ------------------------------------------------------------
       # Upload package as GitHub Actions artifact
@@ -409,6 +454,8 @@ jobs:
           name: HP1018 ${{ github.ref_name }}
           path: ${{ env.UNSIGNED_PACKAGE }}
           if-no-files-found: error
+
+
       # ------------------------------------------------------------
       # Cleanup
       # ------------------------------------------------------------
