@@ -10,11 +10,14 @@
         <string>/usr/local/libexec/hp1018/watch.sh</string>
     </array>
 
-    <key>StartInterval</key>
-    <integer>30</integer>
+    <key>KeepAlive</key>
+    <true/>
 
     <key>RunAtLoad</key>
     <true/>
+
+    <key>ThrottleInterval</key> 
+    <integer>10</integer>
 
     <key>StandardOutPath</key>
     <string>/var/log/hp1018-firmware.log</string>
