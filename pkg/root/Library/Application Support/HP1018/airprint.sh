@@ -6,7 +6,7 @@ PRINTERS_CONF="/etc/cups/printers.conf"
 dns_pid=""
 
 is_printer_available() {
-    /usr/bin/lpinfo -v | /usr/bin/grep -Fq \
+    /usr/sbin/lpinfo -v | /usr/bin/grep -Fq \
       'usb://Hewlett-Packard/HP%20LaserJet%201018'
 }
 
