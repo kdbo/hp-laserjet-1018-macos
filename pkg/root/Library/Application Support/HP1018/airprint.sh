@@ -94,7 +94,6 @@ while true; do
         note="$(get_printer_value "Location")"
 
         [ -z "$ty" ] && ty="HP LaserJet 1018"
-        [ -z "$note" ] && note="Koen’s Mac mini"
 
         if [ -z "$dns_pid" ] || ! kill -0 "$dns_pid" 2>/dev/null; then
             start_airprint "$ty" "$note"
