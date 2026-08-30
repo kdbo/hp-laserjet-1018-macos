@@ -2,6 +2,12 @@ name: Build HP LaserJet 1018 Package
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Package version for this manual build (for example 0.0.0)"
+        required: true
+        default: "0.0.0"
+        type: string
   push:
     tags:
       - "v*"
@@ -25,33 +31,40 @@ jobs:
         uses: actions/checkout@v4
 
       # ------------------------------------------------------------
-      # Validate version tag
+      # Resolve package version
       #
-      # Git tag:
-      #   v1.0.3
-      #
-      # Package version:
-      #   1.0.3
+      # Tag build:    v1.0.3 -> 1.0.3
+      # Manual build: workflow input -> 0.0.0 (or another semver version)
       # ------------------------------------------------------------
 
-      - name: Validate version tag
+      - name: Resolve package version
         shell: bash
         run: |
-          if [[ "$GITHUB_REF_TYPE" != "tag" ]]; then
-            echo "ERROR: This workflow must be run from a version tag."
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            if [[ ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "ERROR: Invalid version tag: $GITHUB_REF_NAME"
+              echo "Expected format: vMAJOR.MINOR.PATCH"
+              exit 1
+            fi
+
+            VERSION="${GITHUB_REF_NAME#v}"
+            echo "Git tag:       $GITHUB_REF_NAME"
+          elif [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            VERSION="${{ inputs.version }}"
+            echo "Manual build version: $VERSION"
+          else
+            echo "ERROR: This workflow supports version-tag pushes and manual dispatches only."
             exit 1
           fi
 
-          if [[ ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "ERROR: Invalid version tag: $GITHUB_REF_NAME"
-            echo "Expected format: vMAJOR.MINOR.PATCH"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "ERROR: Invalid package version: $VERSION"
+            echo "Expected format: MAJOR.MINOR.PATCH"
             exit 1
           fi
 
-          VERSION="${GITHUB_REF_NAME#v}"
-
-          echo "Git tag:       $GITHUB_REF_NAME"
           echo "Package version: $VERSION"
+          echo "PACKAGE_VERSION=$VERSION" >> "$GITHUB_ENV"
 
       # ------------------------------------------------------------
       # Show build environment
@@ -339,7 +352,7 @@ jobs:
 
       - name: Build package
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="$PACKAGE_VERSION"
 
           pkgbuild \
             --root pkg-build/root \
@@ -357,7 +370,7 @@ jobs:
 
       - name: Inspect package
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="$PACKAGE_VERSION"
 
           pkgutil --check-signature \
             "HP1018-${VERSION}.pkg" || true
@@ -377,7 +390,7 @@ jobs:
 
       - name: Sign installer package
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="$PACKAGE_VERSION"
 
           productsign \
             --sign "$APPLE_INSTALLER_IDENTITY" \
@@ -390,7 +403,7 @@ jobs:
 
       - name: Verify installer signature
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="$PACKAGE_VERSION"
 
           pkgutil --check-signature \
             "HP1018-${VERSION}-signed.pkg"
@@ -448,13 +461,13 @@ jobs:
       - name: Upload Signed package
         uses: actions/upload-artifact@v4
         with:
-          name: HP1018 ${{ github.ref_name }} Signed
+          name: HP1018 ${{ env.PACKAGE_VERSION }} Signed
           path: ${{ env.SIGNED_PACKAGE }}
           if-no-files-found: error
       - name: Upload Unsigned package
         uses: actions/upload-artifact@v4
         with:
-          name: HP1018 ${{ github.ref_name }}
+          name: HP1018 ${{ env.PACKAGE_VERSION }}
           path: ${{ env.UNSIGNED_PACKAGE }}
           if-no-files-found: error
 
