@@ -272,8 +272,6 @@ hp-laserjet-1018-macos/
 
 ├── Makefile
 
-├── install.sh
-
 ├── README.md
 
 ├── LICENSE
