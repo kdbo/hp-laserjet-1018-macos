@@ -134,6 +134,10 @@ After installation:
 4. Select the supplied HP LaserJet 1018 PPD/driver.
 5. Enable **Printer Sharing** if AirPrint access is required.
 
+Multiple HP LaserJet 1018 printers can be configured with separate CUPS queue
+names. The firmware and AirPrint services associate each queue with its exact
+USB DeviceURI, including the serial number when CUPS provides one.
+
 The firmware LaunchDaemon handles the firmware upload automatically.
 
 ## AirPrint
@@ -152,11 +156,10 @@ The advertised service uses:
 _ipp._tcp,_universal
 ```
 
-The daemon uses the CUPS queue:
-
-```text
-printers/HP_LaserJet_1018
-```
+The daemon publishes every shared HP LaserJet 1018 CUPS queue whose configured
+USB device is currently connected. Each advertisement points to its own CUPS
+queue at `printers/<queue-name>` and includes that queue name in the Bonjour
+service name.
 
 ### Checking AirPrint
 
@@ -166,10 +169,10 @@ Bonjour can be inspected with:
 dns-sd -B _ipp._tcp,_universal local
 ```
 
-The expected service is:
+The expected service name has this form:
 
 ```text
-HP LaserJet 1018 AirPrint
+<CUPS printer info> AirPrint (<queue-name>)
 ```
 
 ### Disabling AirPrint
@@ -204,7 +207,8 @@ The firmware watcher is installed as:
 /usr/local/libexec/hp1018/watch.sh
 ```
 
-The LaunchDaemon periodically checks the printer and loads the firmware when required.
+The LaunchDaemon periodically checks every configured HP LaserJet 1018 queue
+and loads firmware only to that queue's exact USB DeviceURI when required.
 
 ## Building from source
 
@@ -284,6 +288,10 @@ The `foo2zjs/` directory contains source code and printer-specific resources ori
 Compiled binaries, installer packages and temporary package-build directories are intentionally excluded from the repository.
 
 ## Version history
+
+### Temporary / unreleased
+* Added support for multiple HP LaserJet 1018 printers by associating each CUPS queue with its exact USB DeviceURI.
+* Firmware loading and AirPrint advertisements are now tracked independently per configured printer queue.
 
 ### 1.0.19
 * Airprint also checks if the printer is connected, not only if the printer is shared. This will stop airprint when the usb has been unplugged or the printer loses power.
