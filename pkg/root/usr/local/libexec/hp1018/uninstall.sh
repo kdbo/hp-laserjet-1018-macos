@@ -12,6 +12,7 @@ LAUNCHD_FIRMWARE="/Library/LaunchDaemons/com.kdbo.hp1018-firmware.plist"
 LAUNCHD_AIRPRINT="/Library/LaunchDaemons/com.kdbo.hp1018.airprint.plist"
 APP_SUPPORT="/Library/Application Support/HP1018"
 UNINSTALLER="/usr/local/bin/hp1018-uninstall"
+STATE_DIR="/var/run/hp1018"
 
 echo "=== $PRODUCT Uninstaller ==="
 echo ""
@@ -43,6 +44,7 @@ rm -f "$LAUNCHD_FIRMWARE"
 rm -f "$LAUNCHD_AIRPRINT"
 rm -rf "$APP_SUPPORT"
 rm -rf "$PPD"
+rm -rf "$STATE_DIR"
 
 echo "Restarting CUPS..."
 
