@@ -291,9 +291,10 @@ Compiled binaries, installer packages and temporary package-build directories ar
 
 ## Version history
 
-### Temporary / unreleased
+### 1.0.26
 * Added support for multiple HP LaserJet 1018 printers by associating each CUPS queue with its exact USB DeviceURI.
 * Firmware loading and AirPrint advertisements are now tracked independently per configured printer queue.
+
 ### 1.0.25
 * Fixed complex multi-page print jobs that could merge pages, stop mid-page, or leave the printer busy.
 
