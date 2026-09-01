@@ -12,6 +12,8 @@ The driver provides automatic firmware loading and AirPrint support for the HP L
 
 * Universal CUPS raster filter containing both architectures
 
+* Reliable multi-page printing: each HP 1018 page is sent as a complete ZjStream document
+
 * No Ghostscript required
 
 * No Rosetta required
