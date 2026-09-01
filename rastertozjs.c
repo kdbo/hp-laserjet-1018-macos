@@ -47,7 +47,7 @@ chunk_write_rsvd(unsigned long type, unsigned int rsvd,
     chunk.size = be32(sizeof(ZJ_HEADER) + size);
     chunk.reserved = be16(rsvd);
     chunk.signature = 0x5a5a;
-    if (fwrite(&chunk, 1, sizeof(ZJ_HEADER), fp) == 0)
+    if (fwrite(&chunk, 1, sizeof(ZJ_HEADER), fp) != sizeof(ZJ_HEADER))
     {
         fprintf(stderr, "ERROR: rastertozjs: chunk_write failed\n");
         exit(1);
@@ -70,7 +70,7 @@ item_uint32_write(unsigned short item, unsigned long value, FILE *fp)
     rec.header.type = ZJIT_UINT32;
     rec.header.param = 0;
     rec.value = be32(value);
-    if (fwrite(&rec, 1, sizeof(ZJ_ITEM_UINT32), fp) == 0)
+    if (fwrite(&rec, 1, sizeof(ZJ_ITEM_UINT32), fp) != sizeof(ZJ_ITEM_UINT32))
     {
         fprintf(stderr, "ERROR: rastertozjs: item_uint32_write failed\n");
         exit(1);
@@ -103,7 +103,7 @@ static long JbgOptions[5] = {
     JBG_ILEAVE | JBG_SMID,
     JBG_DELAY_AT | JBG_LRLTWO | JBG_TPDON | JBG_TPBON | JBG_DPON,
     128,
-    16,
+    0,
     0
 };
 
@@ -201,7 +201,11 @@ write_plane(int planeNum, BIE_CHAIN **root, FILE *fp, int model)
         if (current == *root)
         {
             chunk_write(ZJT_JBIG_BIH, 0, current->len, fp);
-            fwrite(current->data, 1, current->len, fp);
+            if (fwrite(current->data, 1, current->len, fp) != current->len)
+            {
+                fprintf(stderr, "ERROR: rastertozjs: cannot write JBIG header\n");
+                exit(1);
+            }
         }
         else
         {
@@ -212,9 +216,17 @@ write_plane(int planeNum, BIE_CHAIN **root, FILE *fp, int model)
             else
                 pad_len = 0;
             chunk_write(ZJT_JBIG_BID, 0, len + pad_len, fp);
-            fwrite(current->data, 1, len, fp);
+            if (fwrite(current->data, 1, len, fp) != (size_t)len)
+            {
+                fprintf(stderr, "ERROR: rastertozjs: cannot write JBIG data\n");
+                exit(1);
+            }
             for (i = 0; i < pad_len; i++)
-                putc(0, fp);
+                if (putc(0, fp) == EOF)
+                {
+                    fprintf(stderr, "ERROR: rastertozjs: cannot write JBIG padding\n");
+                    exit(1);
+                }
         }
     }
 
@@ -580,6 +592,8 @@ main(int argc, char *argv[])
     int                 density = 3;
     int                 economode = 0;
     int                 model = MODEL_HP1020;
+    int                 page_documents;
+    int                 status = 0;
 
     if (argc < 6 || argc > 7)
     {
@@ -592,6 +606,14 @@ main(int argc, char *argv[])
     signal(SIGPIPE, SIG_IGN);
 
     parse_options(argv[5], &density, &economode, &model);
+
+    /*
+     * The HP LaserJet 1018 firmware can retain JBIG decoder state across
+     * ZjStream pages.  On complex multi-page jobs that can combine two
+     * logical pages on one physical sheet or leave the printer busy.  A
+     * complete PJL/ZjStream document boundary per page clears that state.
+     */
+    page_documents = (model == MODEL_HP1020);
 
     if (argc == 7)
     {
@@ -615,7 +637,8 @@ main(int argc, char *argv[])
         return 1;
     }
 
-    start_doc(stdout, model, density, economode);
+    if (!page_documents)
+        start_doc(stdout, model, density, economode);
 
     while (!Canceled && cupsRasterReadHeader2(ras, &header))
     {
@@ -631,6 +654,7 @@ main(int argc, char *argv[])
         unsigned int    y;
         int             invert;
         int             copies;
+        int             page_ok = 1;
 
         page++;
 
@@ -677,7 +701,15 @@ main(int argc, char *argv[])
             unsigned int n = cupsRasterReadPixels(ras,
                                                   buf + (size_t)y * bpl16,
                                                   cupsBpl);
-            if (n == 0) break;
+            if (n != cupsBpl)
+            {
+                fprintf(stderr,
+                        "ERROR: rastertozjs: short raster row on page %d "
+                        "(got %u of %u bytes)\n",
+                        page, n, cupsBpl);
+                page_ok = 0;
+                break;
+            }
 
             if (invert)
             {
@@ -688,9 +720,11 @@ main(int argc, char *argv[])
             }
         }
 
-        if (Canceled)
+        if (Canceled || !page_ok)
         {
             free(buf);
+            if (!Canceled)
+                status = 1;
             break;
         }
 
@@ -701,22 +735,47 @@ main(int argc, char *argv[])
         jbg_enc_out(&se);
         jbg_enc_free(&se);
 
+        if (page_documents)
+            start_doc(stdout, model, density, economode);
+
         start_page(stdout, model, 600, resY, bpp,
                    jbigW, cupsH, realWidth,
                    paperCode, mediaCode, sourceCode,
                    copies, economode);
-        write_plane(4, &chain, stdout, model); /* plane 4 = K for mono */
+        /*
+         * HP's foo2zjs z1 path uses -P: monochrome data is emitted without
+         * START_PLANE/END_PLANE records.  The LaserJet 1018 accepts this
+         * form more reliably than a plane-4 envelope.
+         */
+        if (write_plane(0, &chain, stdout, model))
+        {
+            free(buf);
+            if (page_documents)
+                end_doc(stdout, model);
+            status = 1;
+            break;
+        }
         end_page(stdout, model);
+
+        if (page_documents)
+            end_doc(stdout, model);
 
         free(buf);
 
         fprintf(stderr, "PAGE: %d %d\n", page, copies);
     }
 
-    end_doc(stdout, model);
+    if (!page_documents)
+        end_doc(stdout, model);
 
     cupsRasterClose(ras);
     if (fd != 0) close(fd);
 
-    return Canceled ? 1 : 0;
+    if (fflush(stdout) == EOF || ferror(stdout))
+    {
+        fprintf(stderr, "ERROR: rastertozjs: output stream failed\n");
+        status = 1;
+    }
+
+    return (Canceled || status) ? 1 : 0;
 }
