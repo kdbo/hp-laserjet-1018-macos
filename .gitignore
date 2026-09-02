@@ -7,6 +7,8 @@ build/
 pkg-build/
 rastertoxqx
 rastertozjs
+rastertozjs-x86_64
+rastertozjs-arm64
 rastertohiperc
 rastertoqpdl
 rastertolava
@@ -18,4 +20,3 @@ arm2hpdl
 xqxdecode
 zjsdecode
 Attic
-

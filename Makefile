@@ -3,6 +3,7 @@ CFLAGS   = -Wall -O2 -Ifoo2zjs
 LDFLAGS  = -lcups -lcupsimage
 
 JBIG_SRC = foo2zjs/jbig.c foo2zjs/jbig_ar.c
+ZJS_ARCHS = x86_64 arm64
 
 FILTERS  = rastertoxqx rastertozjs rastertohiperc rastertoqpdl \
            rastertolava rastertohbpl2 rastertohp rastertooak rastertoslx
@@ -16,8 +17,15 @@ tools: $(TOOLS)
 rastertoxqx: rastertoxqx.c $(JBIG_SRC)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-rastertozjs: rastertozjs.c $(JBIG_SRC)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+rastertozjs: $(ZJS_ARCHS:%=rastertozjs-%)
+	lipo -create $^ -output $@
+	lipo -info $@
+
+rastertozjs-x86_64: rastertozjs.c $(JBIG_SRC)
+	$(CC) $(CFLAGS) -arch x86_64 -o $@ $^ $(LDFLAGS)
+
+rastertozjs-arm64: rastertozjs.c $(JBIG_SRC)
+	$(CC) $(CFLAGS) -arch arm64 -o $@ $^ $(LDFLAGS)
 
 rastertohiperc: rastertohiperc.c $(JBIG_SRC)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
@@ -47,6 +55,6 @@ xqxdecode: foo2zjs/xqxdecode.c $(JBIG_SRC)
 	$(CC) $(CFLAGS) -o $@ $^
 
 clean:
-	rm -f $(FILTERS) $(TOOLS)
+	rm -f $(FILTERS) $(TOOLS) $(ZJS_ARCHS:%=rastertozjs-%)
 
 .PHONY: all tools clean

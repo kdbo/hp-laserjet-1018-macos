@@ -197,56 +197,13 @@ jobs:
           security find-identity -v -p basic
 
       # ------------------------------------------------------------
-      # Build rastertozjs x86_64
+      # Build universal rastertozjs filter
       # ------------------------------------------------------------
 
-      - name: Build rastertozjs x86_64
+      - name: Build rastertozjs
         run: |
-          clang -arch x86_64 \
-            -o rastertozjs-x86_64 \
-            rastertozjs.c \
-            foo2zjs/jbig.c \
-            foo2zjs/jbig_ar.c \
-            -Ifoo2zjs \
-            -lcups \
-            -lcupsimage \
-            -Wall \
-            -O2
-
-          file rastertozjs-x86_64
-
-      # ------------------------------------------------------------
-      # Build rastertozjs arm64
-      # ------------------------------------------------------------
-
-      - name: Build rastertozjs arm64
-        run: |
-          clang -arch arm64 \
-            -o rastertozjs-arm64 \
-            rastertozjs.c \
-            foo2zjs/jbig.c \
-            foo2zjs/jbig_ar.c \
-            -Ifoo2zjs \
-            -lcups \
-            -lcupsimage \
-            -Wall \
-            -O2
-
-          file rastertozjs-arm64
-
-      # ------------------------------------------------------------
-      # Create universal binary
-      # ------------------------------------------------------------
-
-      - name: Create universal binary
-        run: |
-          lipo -create \
-            rastertozjs-x86_64 \
-            rastertozjs-arm64 \
-            -output rastertozjs-universal
-
-          file rastertozjs-universal
-          lipo -info rastertozjs-universal
+          make rastertozjs
+          file rastertozjs
 
       # ------------------------------------------------------------
       # Sign rastertozjs
@@ -259,7 +216,7 @@ jobs:
             --options runtime \
             --timestamp \
             --sign "$APPLE_APPLICATION_IDENTITY" \
-            rastertozjs-universal
+            rastertozjs
 
       # ------------------------------------------------------------
       # Verify rastertozjs signature
@@ -267,27 +224,27 @@ jobs:
 
       - name: Verify rastertozjs signature
         run: |
-          codesign -dvvv rastertozjs-universal 2>&1
+          codesign -dvvv rastertozjs 2>&1
 
           codesign \
             --verify \
             --strict \
             --verbose=4 \
-            rastertozjs-universal
+            rastertozjs
 
           codesign \
             --verify \
             --strict \
             --verbose=4 \
             --arch x86_64 \
-            rastertozjs-universal
+            rastertozjs
 
           codesign \
             --verify \
             --strict \
             --verbose=4 \
             --arch arm64 \
-            rastertozjs-universal
+            rastertozjs
 
       # ------------------------------------------------------------
       # Prepare package build tree
@@ -324,7 +281,7 @@ jobs:
 
           mkdir -p pkg-build/root/usr/libexec/cups/filter
 
-          cp rastertozjs-universal \
+          cp rastertozjs \
             pkg-build/root/usr/libexec/cups/filter/rastertozjs
 
           chmod 755 \
