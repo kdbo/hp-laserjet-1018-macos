@@ -13,34 +13,33 @@ state_key() {
 }
 
 list_hp1018_queues() {
-    /usr/bin/lpstat -v 2>/dev/null |
-        /usr/bin/awk '
-            $1 == "device" && $2 == "for" {
-                queue = $3
-                sub(/:$/, "", queue)
-                uri = $4
+    # CUPS configuration keys are stable across macOS display languages.
+    /usr/bin/awk '
+        $1 == "<Printer" || $1 == "<DefaultPrinter" {
+            queue = $2
+            sub(/>$/, "", queue)
+            uri = ""
+            next
+        }
 
-                if (uri ~ /^usb:\/\/Hewlett-Packard\/HP%20LaserJet%201018(\?|$)/)
-                    print queue "\t" uri
-            }
-        '
+        $1 == "DeviceURI" && queue != "" {
+            uri = $2
+            next
+        }
+
+        $1 == "</Printer>" || $1 == "</DefaultPrinter>" {
+            if (queue != "" && uri ~ /^usb:\/\/Hewlett-Packard\/HP%20LaserJet%201018(\?|$)/)
+                print queue "\t" uri
+            queue = ""
+            uri = ""
+        }
+    ' "$PRINTERS_CONF"
 }
 
 get_queue_device_uri() {
     local printer="$1"
 
-    /usr/bin/lpstat -v "$printer" 2>/dev/null |
-        /usr/bin/awk -v printer="$printer" '
-            $1 == "device" && $2 == "for" {
-                queue = $3
-                sub(/:$/, "", queue)
-
-                if (queue == printer) {
-                    print $4
-                    exit
-                }
-            }
-        '
+    get_printer_value "$printer" 'DeviceURI'
 }
 
 queue_is_configured_for_uri() {
@@ -67,7 +66,7 @@ get_printer_value() {
     local key="$2"
 
     /usr/bin/awk -v printer="$printer" -v key="$key" '
-        $0 == "<Printer " printer ">" {
+        ($1 == "<Printer" || $1 == "<DefaultPrinter") && $2 == printer ">" {
             found = 1
             next
         }
@@ -78,7 +77,7 @@ get_printer_value() {
             exit
         }
 
-        found && /^<\/Printer>$/ {
+        found && ($1 == "</Printer>" || $1 == "</DefaultPrinter>") {
             exit
         }
     ' "$PRINTERS_CONF"
@@ -88,7 +87,7 @@ is_shared() {
     local printer="$1"
 
     /usr/bin/awk -v printer="$printer" '
-        $0 == "<Printer " printer ">" {
+        ($1 == "<Printer" || $1 == "<DefaultPrinter") && $2 == printer ">" {
             found = 1
             next
         }
@@ -97,7 +96,7 @@ is_shared() {
             exit 0
         }
 
-        found && /^<\/Printer>$/ {
+        found && ($1 == "</Printer>" || $1 == "</DefaultPrinter>") {
             exit 1
         }
 

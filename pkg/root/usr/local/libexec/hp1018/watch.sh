@@ -1,5 +1,6 @@
 #!/bin/bash
 
+PRINTERS_CONF='/etc/cups/printers.conf'
 FIRMWARE='/usr/local/share/hp1018/sihp1018.dl'
 STATE_DIR='/var/run/hp1018'
 
@@ -16,17 +17,27 @@ state_key() {
 # complete DeviceURI. The URI, including its serial query parameter when
 # present, identifies the physical printer.
 list_hp1018_queues() {
-    /usr/bin/lpstat -v 2>/dev/null |
-        /usr/bin/awk '
-            $1 == "device" && $2 == "for" {
-                queue = $3
-                sub(/:$/, "", queue)
-                uri = $4
+    # CUPS configuration keys are stable across macOS display languages.
+    /usr/bin/awk '
+        $1 == "<Printer" || $1 == "<DefaultPrinter" {
+            queue = $2
+            sub(/>$/, "", queue)
+            uri = ""
+            next
+        }
 
-                if (uri ~ /^usb:\/\/Hewlett-Packard\/HP%20LaserJet%201018(\?|$)/)
-                    print queue "\t" uri
-            }
-        '
+        $1 == "DeviceURI" && queue != "" {
+            uri = $2
+            next
+        }
+
+        $1 == "</Printer>" || $1 == "</DefaultPrinter>" {
+            if (queue != "" && uri ~ /^usb:\/\/Hewlett-Packard\/HP%20LaserJet%201018(\?|$)/)
+                print queue "\t" uri
+            queue = ""
+            uri = ""
+        }
+    ' "$PRINTERS_CONF"
 }
 
 is_device_connected() {
