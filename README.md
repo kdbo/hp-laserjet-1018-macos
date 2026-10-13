@@ -291,6 +291,10 @@ Compiled binaries, installer packages and temporary package-build directories ar
 
 ## Version history
 
+### 1.0.27
+* Fixed firmware loading and AirPrint discovery on non-English macOS by reading queue configuration from `/etc/cups/printers.conf` instead of localized `lpstat` output.
+* Added support for default-printer configuration entries while preserving each queue's exact USB DeviceURI.
+
 ### 1.0.26
 * Added support for multiple HP LaserJet 1018 printers by associating each CUPS queue with its exact USB DeviceURI.
 * Firmware loading and AirPrint advertisements are now tracked independently per configured printer queue.

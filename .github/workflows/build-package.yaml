@@ -16,6 +16,9 @@ jobs:
   build:
     runs-on: macos-15
 
+    permissions:
+      contents: write
+
     env:
       APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
       APPLE_APPLICATION_IDENTITY: ${{ vars.APPLE_APPLICATION_IDENTITY }}
@@ -428,6 +431,32 @@ jobs:
           path: ${{ env.UNSIGNED_PACKAGE }}
           if-no-files-found: error
 
+
+      - name: Publish tagged release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          awk -v heading="### $PACKAGE_VERSION" '
+            $0 == heading { found = 1; next }
+            found && /^### / { exit }
+            found { print }
+          ' README.md > "$RUNNER_TEMP/release-notes.md"
+          test -s "$RUNNER_TEMP/release-notes.md"
+
+          # Keep the release in draft until both validated installers are attached.
+          if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" \
+              --verify-tag \
+              --draft \
+              --title "$GITHUB_REF_NAME" \
+              --notes-file "$RUNNER_TEMP/release-notes.md"
+          fi
+
+          gh release upload "$GITHUB_REF_NAME" \
+            "$SIGNED_PACKAGE" "$UNSIGNED_PACKAGE" --clobber
+          gh release edit "$GITHUB_REF_NAME" --draft=false
 
       # ------------------------------------------------------------
       # Cleanup
